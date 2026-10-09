@@ -25,7 +25,7 @@ jobs:
       - name: Verify required app files
         run: |
           set -eu
-          for file in index.html app.js styles.css sw.js manifest.webmanifest icon.svg README_HI.md SECURITY_AUDIT.md ACCOUNT_MANAGEMENT_REQUIREMENTS.md LOGIN_APPROVAL_OTP_REQUIREMENTS.md WINDOWS_LAN_SERVER.md server/package.json server/server.js server/setup-admin.js server/START-LAN-SERVER.bat; do
+          for file in index.html app.js styles.css sw.js manifest.webmanifest icon.svg README_HI.md SECURITY_AUDIT.md ACCOUNT_MANAGEMENT_REQUIREMENTS.md LOGIN_APPROVAL_OTP_REQUIREMENTS.md WINDOWS_LAN_SERVER.md server/package.json server/server.js server/setup-admin.js server/smoke-test.js server/START-LAN-SERVER.bat; do
             test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
           done
 
@@ -35,6 +35,7 @@ jobs:
           node --check sw.js
           node --check server/server.js
           node --check server/setup-admin.js
+          node --check server/smoke-test.js
 
       - name: Verify app shell references
         run: |
@@ -73,3 +74,6 @@ jobs:
           grep -q "You may access only your assigned leads" server/server.js
           grep -q "LAN_MODE" app.js
           grep -q "includes('/api/')" sw.js
+
+      - name: Run isolated LAN API integration smoke tests
+        run: node server/smoke-test.js
