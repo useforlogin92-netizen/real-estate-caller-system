@@ -153,6 +153,30 @@ async function handle(req, res) {
       db.users.push(user); audit(db, s.user.username, 'create_user', user.id, { username, role: user.role, approval: user.approval }); writeDb(db);
       return json(res, 201, { user: safeUser(user) });
     }
+    const profileMatch = p.match(/^\\/api\\/admin\\/users\\/([\\w-]+)$/);
+    if (profileMatch && req.method === 'PATCH') {
+      const s = requireUser(req, res, true); if (!s) return;
+      const data = await body(req), db = readDb(), user = db.users.find(u => u.id === profileMatch[1]);
+      if (!user) return json(res, 404, { error: 'User not found.' });
+      if (data.name !== undefined) user.name = cleanText(data.name, 100) || user.username;
+      if (data.username !== undefined) {
+        const username = cleanText(data.username, 40).toLowerCase();
+        if (!/^[a-z0-9._-]{3,40}$/.test(username)) return json(res, 400, { error: 'Invalid username.' });
+        if (db.users.some(u => u.id !== user.id && u.username.toLowerCase() === username)) return json(res, 409, { error: 'Username already exists.' });
+        user.username = username;
+      }
+      if (data.email !== undefined) user.email = cleanText(data.email, 150).toLowerCase();
+      if (data.role !== undefined && ['admin','caller'].includes(data.role)) {
+        if (user.role === 'admin' && data.role !== 'admin' && user.active && db.users.filter(u => u.role === 'admin' && u.active).length === 1) return json(res, 400, { error: 'Cannot demote the last active Admin.' });
+        user.role = data.role;
+      }
+      if (data.password) {
+        if (String(data.password).length < 10) return json(res, 400, { error: 'Password must be at least 10 characters.' });
+        const pw = hashPassword(String(data.password)); user.passwordSalt = pw.salt; user.passwordHash = pw.hash;
+      }
+      audit(db, s.user.username, 'update_user', user.id, { fields: Object.keys(data).filter(k => k !== 'password') }); writeDb(db);
+      return json(res, 200, { user: safeUser(user) });
+    }
     const activeMatch = p.match(/^\\/api\\/admin\\/users\\/([\\w-]+)\\/active$/);
     if (activeMatch && req.method === 'PATCH') {
       const s = requireUser(req, res, true); if (!s) return;
