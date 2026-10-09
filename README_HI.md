@@ -47,3 +47,14 @@ Windows local server setup और commands के लिए [WINDOWS_LAN_SERVER.
 
 विस्तृत requirements: [ACCOUNT_MANAGEMENT_REQUIREMENTS.md](./ACCOUNT_MANAGEMENT_REQUIREMENTS.md)  
 Security audit: [SECURITY_AUDIT.md](./SECURITY_AUDIT.md)
+
+
+## Recommended use: mostly offline, short daily backup window
+
+- रोजमर्रा का काम local Windows LAN server पर करें; इंटरनेट लगातार चालू रखना जरूरी नहीं।
+- दिन में एक बार internet थोड़ी देर के लिए connect करके `windows\RUN-OFFLINE-BACKUP.bat` चलाएँ।
+- यह पहले local database/source backups बनाता है और फिर GitHub से current code ZIP download करता है।
+- Backup के बाद internet disconnect कर सकते हैं। LAN server के लिए server PC चालू और local network उपलब्ध होना जरूरी है।
+- GitHub पर code backup और customer-data backup अलग चीजें हैं: इस tool से customer database public GitHub पर upload नहीं होती।
+- कई अलग offline PCs पर अलग-अलग leads दर्ज करने पर automatic merge नहीं होगा; सभी callers को एक ही LAN server database इस्तेमाल करना चाहिए।
+- Daily backup/update automation Windows Task Scheduler से configure की जा सकती है; पहले manually test करें।
