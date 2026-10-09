@@ -4,7 +4,8 @@
 
 ## अभी उपलब्ध सुविधाएँ
 - Admin और 10 demo Caller accounts के साथ prototype login
-- Admin के Users tab से local accounts create/edit करना, display name/username/email बदलना, password बदलना, role और active status बदलना
+- Admin के Users tab से local accounts create/edit करना, display name/username/email बदलना, password बदलना, role/active status और prototype admin approval बदलना
+- Login UI में Username + Password और OTP विकल्प; OTP delivery/verification अभी backend के बिना सक्रिय नहीं है
 - Leads add/edit/delete, caller assignment display, follow-ups और site visits
 - CSV export और Admin JSON backup/restore
 - Service worker app-shell cache, पहली online visit के बाद सीमित offline opening
@@ -15,6 +16,12 @@
 - Caller 02–10: `caller02` ... `caller10` / `CallerDemo123!`
 
 पहली बार Admin login के बाद Users tab में Admin credentials बदलने का local option है। यह सुविधा अभी उसी browser में काम करती है; इसे secure server-side password management न समझें।
+
+## Caller login: password, OTP और Admin approval
+- Caller login में Username + Password और OTP verification विकल्प दिखते हैं।
+- Admin Users tab में caller को approve/revoke कर सकता है; prototype login pending/rejected caller को रोकता है।
+- यह approval केवल उसी browser के local demo data में लागू है; वास्तविक access control के लिए local server/backend पर approval enforce होना जरूरी है।
+- OTP भेजना और verify करना अभी लागू नहीं है। इसके लिए server-side OTP expiry, one-time use, rate limits और SMS/email provider या स्पष्ट offline-LAN OTP design चाहिए। इंटरनेट बंद होने पर SMS/email OTP delivery नहीं होगी।
 
 ## सुरक्षा स्थिति — जरूरी
 **यह अभी production-ready नहीं है। वास्तविक ग्राहक डेटा या reused passwords न डालें।**
