@@ -25,7 +25,16 @@ This server can generate short-lived, single-use OTPs and prints them to the **W
 ## Security and current status
 - Server-side scrypt password hashes, expiring bearer sessions, basic login/OTP rate limiting, approval enforcement, lead ownership checks and an audit log are implemented in this server scaffold.
 - Admin creates users through the server API; caller accounts default to pending approval.
-- The browser UI still needs its API integration before the full workflow is end-to-end. Do not treat this scaffold alone as completed/production-ready.
-- Before use with real customer data, complete UI/API integration, add account disable/password reset APIs, test LAN access and firewall rules, validate all authorization cases, and configure regular encrypted backups.
+- The browser UI is wired to the LAN API for sign-in, OTP verification, user administration, lead CRUD, caller assignment, periodic refresh, and Admin JSON backup/restore.
+- Automated CI smoke tests exercise server startup, password login, pending-approval denial, caller ownership, Admin reassignment, backup/restore, and static-file restrictions. These tests are not a substitute for testing on the actual Windows PC and router.
+- Before real customer data, test the exact Windows/LAN setup, restrict Windows Firewall to the trusted Private network, protect the external HDD, and confirm backups can be restored. HTTP traffic on this LAN is not encrypted; do not use untrusted/public Wi-Fi or expose the port to the internet.
 - Never port-forward this port to the public internet. Use only a trusted private LAN.
 - Local browser caching does not automatically make shared server data available when the server PC is off.
+
+
+## LAN backup and restore
+- Sign in as Admin and open Backup / Export.
+- In LAN mode, Download full backup requests the server database backup, including user records/password hashes, leads and audit records. Store it privately.
+- Restore JSON backup validates the backup, writes a pre-restore database snapshot in `server/data`, restores the shared database, and invalidates active sessions so everyone must sign in again.
+- Keep the backup file private. It contains sensitive customer data and password hashes; never commit it to GitHub.
+- The Windows `windows\\RUN-OFFLINE-BACKUP.bat` script is separate: it backs up local files and downloads code from GitHub; it does not upload customer data to GitHub.
