@@ -8,18 +8,14 @@ This is a separate local-network service for the standalone Real Estate Caller S
 - Keep the Windows server computer switched on while clients use the app
 
 ## First-time setup on Windows PowerShell
-From the repository folder:
+From the repository folder, run these commands in PowerShell:
 ```powershell
+cd server
 node --version
 npm run setup-admin -- admin "Use-A-Unique-Long-Password-Here" admin@local.test
 npm start
 ```
-Use your own unique password of at least 12 characters. Do not paste a real password into chat. If your project folder is not a Node package root, run commands from the `server` folder:
-```powershell
-cd server
-npm run setup-admin -- admin "Use-A-Unique-Long-Password-Here" admin@local.test
-npm start
-```
+Use your own unique password of at least 12 characters. Do not paste a real password into chat. Run the setup-admin command only once; if an Admin already exists, it will refuse to create another.
 
 Open `http://localhost:8080` on the server. On Android/other Windows devices, find the server PC IPv4 address using `ipconfig`, then open `http://SERVER-IP:8080`, for example `http://192.168.1.50:8080`. The example IP is illustrative only.
 
