@@ -25,7 +25,7 @@ jobs:
       - name: Verify required app files
         run: |
           set -eu
-          for file in index.html app.js styles.css sw.js manifest.webmanifest icon.svg README_HI.md SECURITY_AUDIT.md ACCOUNT_MANAGEMENT_REQUIREMENTS.md; do
+          for file in index.html app.js styles.css sw.js manifest.webmanifest icon.svg README_HI.md SECURITY_AUDIT.md ACCOUNT_MANAGEMENT_REQUIREMENTS.md LOGIN_APPROVAL_OTP_REQUIREMENTS.md; do
             test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
           done
 
@@ -51,3 +51,13 @@ jobs:
           grep -q 'function saveUser' app.js
           grep -q 'function toggleUser' app.js
           grep -q 'function editUser' app.js
+
+      - name: Verify caller login approval and OTP options
+        run: |
+          set -eu
+          grep -q 'id="loginMethod"' index.html
+          grep -q 'value="otp"' index.html
+          grep -q 'id="requestOtpBtn"' index.html
+          grep -q 'id="userApproval"' index.html
+          grep -q "user.approval!=='approved'" app.js
+          grep -q 'function setUserApproval' app.js
