@@ -153,7 +153,7 @@ async function handle(req, res) {
       db.users.push(user); audit(db, s.user.username, 'create_user', user.id, { username, role: user.role, approval: user.approval }); writeDb(db);
       return json(res, 201, { user: safeUser(user) });
     }
-    const profileMatch = p.match(/^\\/api\\/admin\\/users\\/([\\w-]+)$/);
+    const profileMatch = p.match(/^\/api\/admin\/users\/([\w-]+)$/);
     if (profileMatch && req.method === 'PATCH') {
       const s = requireUser(req, res, true); if (!s) return;
       const data = await body(req), db = readDb(), user = db.users.find(u => u.id === profileMatch[1]);
@@ -177,7 +177,7 @@ async function handle(req, res) {
       audit(db, s.user.username, 'update_user', user.id, { fields: Object.keys(data).filter(k => k !== 'password') }); writeDb(db);
       return json(res, 200, { user: safeUser(user) });
     }
-    const activeMatch = p.match(/^\\/api\\/admin\\/users\\/([\\w-]+)\\/active$/);
+    const activeMatch = p.match(/^\/api\/admin\/users\/([\w-]+)\/active$/);
     if (activeMatch && req.method === 'PATCH') {
       const s = requireUser(req, res, true); if (!s) return;
       const data = await body(req), db = readDb(), user = db.users.find(u => u.id === activeMatch[1]);
