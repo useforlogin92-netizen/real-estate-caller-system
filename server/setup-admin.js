@@ -2,7 +2,8 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const crypto=require('node:crypto');
-const file=path.join(__dirname,'data','database.json');
+const dataDir=path.resolve(process.env.DATA_DIR || path.join(__dirname,'data'));
+const file=path.join(dataDir,'database.json');
 const [usernameArg,passwordArg,emailArg='']=process.argv.slice(2);
 if(!usernameArg||!passwordArg||passwordArg.length<12){
  console.error('Usage: npm run setup-admin -- <username> <password-at-least-12-chars> [email]');
