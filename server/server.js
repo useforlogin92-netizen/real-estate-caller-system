@@ -208,7 +208,7 @@ async function handle(req, res) {
     if (p === '/api/leads' && req.method === 'POST') {
       const s = requireUser(req, res); if (!s) return;
       const data = await body(req), db = readDb();
-      const lead = { ...data, id: crypto.randomUUID(), assignedTo: s.user.role === 'admin' && data.assignedTo ? data.assignedTo : s.user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      const lead = { ...data, id: crypto.randomUUID(), assignedTo: s.user.role === 'admin' ? (data.assignedTo || (db.users.find(u => u.role === 'caller' && u.active && u.approval === 'approved') || {}).id || s.user.id) : s.user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
       delete lead.password; db.leads.push(lead); audit(db, s.user.username, 'create_lead', lead.id); writeDb(db);
       return json(res, 201, { lead });
     }
