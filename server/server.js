@@ -7,7 +7,7 @@ const crypto = require('node:crypto');
 const { URL } = require('node:url');
 
 const ROOT = path.resolve(__dirname, '..');
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data'));
 const DB_FILE = path.join(DATA_DIR, 'database.json');
 const HOST = process.env.HOST || '0.0.0.0';
 const PORT = Number(process.env.PORT || 8080);
