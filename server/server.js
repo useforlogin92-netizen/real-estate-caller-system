@@ -30,7 +30,8 @@ function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   return { salt, hash };
 }
 function passwordMatches(password, user) {
-  const candidate = crypto.scryptSync(password, user.passwordSalt, 64);
+  if (!user || typeof user.passwordSalt !== 'string' || typeof user.passwordHash !== 'string' || !/^[a-f0-9]{128}$/i.test(user.passwordHash)) return false;
+  const candidate = crypto.scryptSync(String(password || ''), user.passwordSalt, 64);
   const stored = Buffer.from(user.passwordHash, 'hex');
   return stored.length === candidate.length && crypto.timingSafeEqual(candidate, stored);
 }
@@ -76,7 +77,11 @@ function rateLimited(key) {
   return recent.length > 8;
 }
 function staticFile(req, res, pathname) {
-  const requested = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
+  let requested;
+  try { requested = pathname === '/' ? '/index.html' : decodeURIComponent(pathname); }
+  catch { return json(res, 400, { error: 'Invalid path' }); }
+  const publicFiles = new Set(['/index.html', '/app.js', '/styles.css', '/sw.js', '/manifest.webmanifest', '/icon.svg']);
+  if (!publicFiles.has(requested)) return json(res, 404, { error: 'Not found' });
   const full = path.resolve(ROOT, '.' + requested);
   if (!full.startsWith(ROOT + path.sep) || full.startsWith(DATA_DIR)) return json(res, 403, { error: 'Forbidden' });
   let stat;
@@ -208,8 +213,11 @@ async function handle(req, res) {
     if (p === '/api/leads' && req.method === 'POST') {
       const s = requireUser(req, res); if (!s) return;
       const data = await body(req), db = readDb();
-      const lead = { ...data, id: crypto.randomUUID(), assignedTo: s.user.role === 'admin' ? (data.assignedTo || (db.users.find(u => u.role === 'caller' && u.active && u.approval === 'approved') || {}).id || s.user.id) : s.user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-      delete lead.password; db.leads.push(lead); audit(db, s.user.username, 'create_lead', lead.id); writeDb(db);
+      const allowed = ['name','mobile','whatsapp','email','area','budget','bhk','propertyType','status','callOutcome','followDate','followTime','visitDate','visitTime','visitStatus','notes'];
+      const leadData = Object.fromEntries(allowed.filter(k => data[k] !== undefined).map(k => [k, cleanText(data[k], k === 'notes' ? 2000 : 200)]));
+      if (!leadData.name || !leadData.mobile) return json(res, 400, { error: 'Customer name and mobile are required.' });
+      const lead = { ...leadData, id: crypto.randomUUID(), assignedTo: s.user.role === 'admin' ? (data.assignedTo || (db.users.find(u => u.role === 'caller' && u.active && u.approval === 'approved') || {}).id || s.user.id) : s.user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      db.leads.push(lead); audit(db, s.user.username, 'create_lead', lead.id); writeDb(db);
       return json(res, 201, { lead });
     }
     const leadMatch = p.match(/^\/api\/leads\/([\w-]+)$/);
@@ -220,7 +228,13 @@ async function handle(req, res) {
       const lead = db.leads[index];
       if (s.user.role !== 'admin' && lead.assignedTo !== s.user.id) return json(res, 403, { error: 'You may access only your assigned leads.' });
       if (req.method === 'DELETE') db.leads.splice(index, 1);
-      else Object.assign(lead, await body(req), { updatedAt: new Date().toISOString(), id: lead.id, assignedTo: lead.assignedTo });
+      else {
+        const data = await body(req), allowed = ['name','mobile','whatsapp','email','area','budget','bhk','propertyType','status','callOutcome','followDate','followTime','visitDate','visitTime','visitStatus','notes'];
+        if (data.name !== undefined && !cleanText(data.name, 120)) return json(res, 400, { error: 'Customer name is required.' });
+        if (data.mobile !== undefined && !cleanText(data.mobile, 30)) return json(res, 400, { error: 'Customer mobile is required.' });
+        for (const key of allowed) if (data[key] !== undefined) lead[key] = cleanText(data[key], key === 'notes' ? 2000 : 200);
+        lead.updatedAt = new Date().toISOString();
+      }
       audit(db, s.user.username, req.method === 'DELETE' ? 'delete_lead' : 'update_lead', lead.id); writeDb(db);
       return json(res, 200, { ok: true, ...(req.method === 'PATCH' ? { lead } : {}) });
     }
