@@ -25,7 +25,7 @@ jobs:
       - name: Verify required app files
         run: |
           set -eu
-          for file in index.html app.js styles.css sw.js manifest.webmanifest icon.svg README_HI.md SECURITY_AUDIT.md; do
+          for file in index.html app.js styles.css sw.js manifest.webmanifest icon.svg README_HI.md SECURITY_AUDIT.md ACCOUNT_MANAGEMENT_REQUIREMENTS.md; do
             test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
           done
 
@@ -40,3 +40,14 @@ jobs:
           grep -q 'src="./app.js"' index.html
           grep -q 'href="./manifest.webmanifest"' index.html
           grep -q "serviceWorker.register('./sw.js')" app.js
+
+      - name: Verify account management UI hooks
+        run: |
+          set -eu
+          grep -q 'id="usersTab"' index.html
+          grep -q 'id="userForm"' index.html
+          grep -q 'id="userPassword"' index.html
+          grep -q 'function readUsers' app.js
+          grep -q 'function saveUser' app.js
+          grep -q 'function toggleUser' app.js
+          grep -q 'function editUser' app.js
