@@ -1,0 +1,11 @@
+{
+  "name": "real-estate-caller-lan-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone offline LAN server for Real Estate Caller Desk",
+  "scripts": {
+    "start": "node server.js",
+    "setup-admin": "node setup-admin.js"
+  },
+  "engines": { "node": ">=20" }
+}
