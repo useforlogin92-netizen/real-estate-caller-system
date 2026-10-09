@@ -256,7 +256,9 @@ async function handle(req, res) {
       const allowed = ['name','mobile','whatsapp','email','area','budget','bhk','propertyType','status','callOutcome','followDate','followTime','visitDate','visitTime','visitStatus','notes'];
       const leadData = Object.fromEntries(allowed.filter(k => data[k] !== undefined).map(k => [k, cleanText(data[k], k === 'notes' ? 2000 : 200)]));
       if (!leadData.name || !leadData.mobile) return json(res, 400, { error: 'Customer name and mobile are required.' });
-      const lead = { ...leadData, id: crypto.randomUUID(), assignedTo: s.user.role === 'admin' ? (data.assignedTo || (db.users.find(u => u.role === 'caller' && u.active && u.approval === 'approved') || {}).id || s.user.id) : s.user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      const requestedAssignee = s.user.role === 'admin' && data.assignedTo ? db.users.find(u => u.id === data.assignedTo && u.role === 'caller' && u.active && u.approval === 'approved') : null;
+      if (s.user.role === 'admin' && data.assignedTo && !requestedAssignee) return json(res, 400, { error: 'Selected caller must be active and approved.' });
+      const lead = { ...leadData, id: crypto.randomUUID(), assignedTo: s.user.role === 'admin' ? (requestedAssignee?.id || (db.users.find(u => u.role === 'caller' && u.active && u.approval === 'approved') || {}).id || s.user.id) : s.user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
       db.leads.push(lead); audit(db, s.user.username, 'create_lead', lead.id); writeDb(db);
       return json(res, 201, { lead });
     }
@@ -273,6 +275,11 @@ async function handle(req, res) {
         if (data.name !== undefined && !cleanText(data.name, 120)) return json(res, 400, { error: 'Customer name is required.' });
         if (data.mobile !== undefined && !cleanText(data.mobile, 30)) return json(res, 400, { error: 'Customer mobile is required.' });
         for (const key of allowed) if (data[key] !== undefined) lead[key] = cleanText(data[key], key === 'notes' ? 2000 : 200);
+        if (data.assignedTo !== undefined && s.user.role === 'admin') {
+          const assignee = db.users.find(u => u.id === data.assignedTo && u.role === 'caller' && u.active && u.approval === 'approved');
+          if (!assignee) return json(res, 400, { error: 'Selected caller must be active and approved.' });
+          lead.assignedTo = assignee.id;
+        }
         lead.updatedAt = new Date().toISOString();
       }
       audit(db, s.user.username, req.method === 'DELETE' ? 'delete_lead' : 'update_lead', lead.id); writeDb(db);
