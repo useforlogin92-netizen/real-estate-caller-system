@@ -153,6 +153,18 @@ async function handle(req, res) {
       db.users.push(user); audit(db, s.user.username, 'create_user', user.id, { username, role: user.role, approval: user.approval }); writeDb(db);
       return json(res, 201, { user: safeUser(user) });
     }
+    const activeMatch = p.match(/^\\/api\\/admin\\/users\\/([\\w-]+)\\/active$/);
+    if (activeMatch && req.method === 'PATCH') {
+      const s = requireUser(req, res, true); if (!s) return;
+      const data = await body(req), db = readDb(), user = db.users.find(u => u.id === activeMatch[1]);
+      if (!user) return json(res, 404, { error: 'User not found.' });
+      if (typeof data.active !== 'boolean') return json(res, 400, { error: 'active must be true or false.' });
+      if (user.id === s.user.id && data.active === false) return json(res, 400, { error: 'You cannot disable your own account.' });
+      if (user.role === 'admin' && user.active && data.active === false && db.users.filter(u => u.role === 'admin' && u.active).length === 1) return json(res, 400, { error: 'Cannot disable the last active Admin.' });
+      user.active = data.active; audit(db, s.user.username, 'set_active', user.id, { active: user.active }); writeDb(db);
+      if (!user.active) for (const [token, sess] of sessions) if (sess.userId === user.id) sessions.delete(token);
+      return json(res, 200, { user: safeUser(user) });
+    }
     const approvalMatch = p.match(/^\/api\/admin\/users\/([\w-]+)\/approval$/);
     if (approvalMatch && req.method === 'PATCH') {
       const s = requireUser(req, res, true); if (!s) return;
