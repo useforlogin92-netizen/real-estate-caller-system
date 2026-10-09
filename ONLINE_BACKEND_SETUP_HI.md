@@ -1,3 +1,5 @@
+> **स्थिति: इस project के चुने हुए LAN-only setup के लिए लागू नहीं।** अब requirement office LAN-only login और Admin-confirmed backup/restore है; इसलिए अभी cloud/Supabase project न बनाएँ। सही योजना के लिए [OFFICE_LAN_ARCHITECTURE_HI.md](./OFFICE_LAN_ARCHITECTURE_HI.md) देखें। यह दस्तावेज़ केवल भविष्य में office के बाहर online login की आवश्यकता होने पर संदर्भ के लिए रखा गया है।
+
 # Online shared accounts — implementation gate (Hindi)
 
 ## मौजूदा समस्या
