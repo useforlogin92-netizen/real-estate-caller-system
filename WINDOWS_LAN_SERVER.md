@@ -25,11 +25,13 @@ This server can generate short-lived, single-use OTPs and prints them to the **W
 ## Security and current status
 - Server-side scrypt password hashes, expiring bearer sessions, basic login/OTP rate limiting, approval enforcement, lead ownership checks and an audit log are implemented in this server scaffold.
 - Admin creates users through the server API; caller accounts default to pending approval.
-- The browser UI is wired to the LAN API for sign-in, OTP verification, user administration, lead CRUD, caller assignment, periodic refresh, and Admin JSON backup/restore.
+- The browser UI is wired to the LAN API for sign-in, OTP verification, user administration, lead CRUD, caller assignment, Admin JSON backup/restore, and near-live refresh. While a signed-in tab is visible, it polls the shared server every 2 seconds and refreshes when the tab regains focus. This is near-live polling, not a guaranteed zero-latency push notification.
 - Automated CI smoke tests exercise server startup, password login, pending-approval denial, caller ownership, Admin reassignment, backup/restore, and static-file restrictions. These tests are not a substitute for testing on the actual Windows PC and router.
 - Before real customer data, test the exact Windows/LAN setup, restrict Windows Firewall to the trusted Private network, protect the external HDD, and confirm backups can be restored. HTTP traffic on this LAN is not encrypted; do not use untrusted/public Wi-Fi or expose the port to the internet.
 - Never port-forward this port to the public internet. Use only a trusted private LAN.
-- Local browser caching does not automatically make shared server data available when the server PC is off.
+- All caller devices and Admin must open the same `http://SERVER-IP:8080` URL; GitHub Pages is only a browser-local demo and does not share records. Local browser caching does not automatically make shared server data available when the server PC is off.
+- Offline operation means the internet may be down while the trusted office LAN and server PC remain on. If the server PC or LAN is unreachable, another device cannot receive updates until connectivity returns.
+- Near-live LAN polling has been changed to 2 seconds on the feature branch. The Windows PC, router/firewall, multiple-device flow, and real visit update still require end-to-end verification before production use.
 
 
 ## LAN backup and restore
