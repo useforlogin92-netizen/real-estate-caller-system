@@ -65,7 +65,7 @@ async function body(req) {
   let raw = '';
   for await (const chunk of req) {
     raw += chunk;
-    if (raw.length > 1024 * 1024) throw new Error('Request too large');
+    if (Buffer.byteLength(raw, 'utf8') > 20 * 1024 * 1024) throw new Error('Request too large');
   }
   return raw ? JSON.parse(raw) : {};
 }
@@ -141,6 +141,46 @@ async function handle(req, res) {
     if (req.method === 'POST' && p === '/api/auth/logout') {
       const s = getSession(req); if (s) sessions.delete(s.token);
       return json(res, 200, { ok: true });
+    }
+    if (p === '/api/admin/backup' && req.method === 'GET') {
+      const s = requireUser(req, res, true); if (!s) return;
+      const db = readDb();
+      audit(db, s.user.username, 'backup_export', null);
+      writeDb(db);
+      return json(res, 200, { version: 1, exportedAt: new Date().toISOString(), database: db });
+    }
+    if (p === '/api/admin/restore' && req.method === 'POST') {
+      const s = requireUser(req, res, true); if (!s) return;
+      const payload = await body(req), incoming = payload.database;
+      if (payload.version !== 1 || !incoming || !Array.isArray(incoming.users) || !Array.isArray(incoming.leads) || !Array.isArray(incoming.audit)) {
+        return json(res, 400, { error: 'Invalid backup format. Expected version 1 with users, leads and audit arrays.' });
+      }
+      if (!incoming.users.some(u => u && u.role === 'admin' && u.active === true && u.approval === 'approved' && typeof u.passwordHash === 'string' && typeof u.passwordSalt === 'string')) {
+        return json(res, 400, { error: 'Backup must contain at least one active approved Admin with password hash.' });
+      }
+      if (incoming.users.length > 1000 || incoming.leads.length > 100000 || incoming.audit.length > 10000) {
+        return json(res, 400, { error: 'Backup exceeds supported record limits.' });
+      }
+      const userIds = new Set();
+      for (const u of incoming.users) {
+        if (!u || typeof u.id !== 'string' || typeof u.username !== 'string' || !['admin','caller'].includes(u.role) || !['approved','pending','rejected'].includes(u.approval) || typeof u.active !== 'boolean' || typeof u.passwordHash !== 'string' || typeof u.passwordSalt !== 'string' || userIds.has(u.id)) {
+          return json(res, 400, { error: 'Backup contains an invalid or duplicate user record.' });
+        }
+        userIds.add(u.id);
+      }
+      for (const lead of incoming.leads) {
+        if (!lead || typeof lead.id !== 'string' || typeof lead.name !== 'string' || typeof lead.mobile !== 'string' || typeof lead.assignedTo !== 'string') {
+          return json(res, 400, { error: 'Backup contains an invalid lead record.' });
+        }
+      }
+      const current = readDb(), backupFile = path.join(DATA_DIR, 'pre-restore-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json');
+      fs.writeFileSync(backupFile, JSON.stringify(current, null, 2), { mode: 0o600 });
+      const restored = { users: incoming.users, leads: incoming.leads, audit: incoming.audit.slice(-5000) };
+      audit(restored, s.user.username, 'backup_restore', null, { users: restored.users.length, leads: restored.leads.length });
+      writeDb(restored);
+      sessions.clear();
+      otpChallenges.clear();
+      return json(res, 200, { ok: true, message: 'Backup restored. All users must sign in again.', users: restored.users.length, leads: restored.leads.length });
     }
     if (p === '/api/admin/users' && req.method === 'GET') {
       const s = requireUser(req, res, true); if (!s) return;
