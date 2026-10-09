@@ -33,6 +33,9 @@
 - Secure multi-user usage से पहले dedicated backend, server-managed auth, password reset, database RLS policies, account provisioning, audit logging, sync/conflict handling और authorization tests जरूरी हैं।
 - किसी existing OM Krishna Group / MetroCRM / Metro Properties backend को इस app के लिए reuse नहीं करना है।
 
+## Windows LAN server mode (Android/Windows/Chromebook)
+Windows local server setup और commands के लिए [WINDOWS_LAN_SERVER.md](./WINDOWS_LAN_SERVER.md) देखें। Server और API integration का code मौजूद है, लेकिन Windows पर वास्तविक run और end-to-end tests अभी करना बाकी है। LAN mode में सभी devices उसी trusted Wi-Fi/LAN पर server PC के IP और port 8080 से जुड़ेंगे। Internet-free OTP Windows server terminal पर दिखेगा; SMS/email OTP के लिए internet provider चाहिए।
+
 ## Chromebook पर चलाना
 1. GitHub Pages site खोलें: https://useforlogin92-netizen.github.io/real-estate-caller-system/
 2. पहली बार online रहते हुए पूरा load होने दें।
