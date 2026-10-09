@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#12345a"><meta name="description" content="Offline-first Real Estate Caller Management">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg">
+<title>Real Estate Caller Desk</title><link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar"><div><div class="eyebrow">STANDALONE • OFFLINE-FIRST</div><h1>Real Estate Caller Desk</h1></div><span id="connection" class="pill">Checking…</span></header>
+<main>
+<section id="loginView" class="panel login">
+  <h2>Sign in</h2><p class="muted">Demo mode for local/offline workflow testing.</p>
+  <label>Username or email<input id="username" autocomplete="username" placeholder="admin or caller01"></label>
+  <label>Password<input id="password" type="password" autocomplete="current-password" placeholder="Enter password"></label>
+  <button id="loginBtn" class="primary">Sign in</button><p id="loginError" class="error" role="alert"></p>
+  <details><summary>Demo accounts (prototype only)</summary><p><b>Admin:</b> admin / AdminDemo123!</p><p><b>Caller 01:</b> caller01 / CallerDemo123!</p><p class="warning">Do not use real customer data or these demo passwords. This prototype's client-side login is not production security.</p></details>
+</section>
+<section id="appView" hidden>
+  <div class="welcome panel"><div><div class="eyebrow">SIGNED IN AS</div><h2 id="who"></h2><p id="roleText" class="muted"></p></div><button id="logoutBtn" class="secondary">Log out</button></div>
+  <div id="securityNotice" class="notice"></div>
+  <nav class="tabs"><button class="tab active" data-tab="leads">Leads</button><button class="tab" data-tab="followups">Follow-ups</button><button class="tab" data-tab="visits">Site visits</button><button class="tab admin-only" data-tab="users">Users</button><button class="tab admin-only" data-tab="backup">Backup / Export</button></nav>
+  <section id="leadsTab" class="tabbody">
+    <div class="sectionhead"><div><h2>Customer leads</h2><p class="muted">One row per lead. Works offline on this device after first load.</p></div><button id="newLeadBtn" class="primary">+ Add lead</button></div>
+    <div class="stats" id="stats"></div>
+    <div class="filters"><input id="search" placeholder="Search name, phone, area…"><select id="statusFilter"><option value="">All statuses</option><option>New</option><option>Contacted</option><option>Hot</option><option>Warm</option><option>Cold</option><option>Visit Scheduled</option><option>Booked</option><option>Lost</option></select></div>
+    <div class="tablewrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>Requirement</th><th>Status</th><th>Next follow-up</th><th>Actions</th></tr></thead><tbody id="leadRows"></tbody></table></div>
+    <p id="emptyLeads" class="empty" hidden>No leads yet. Click “Add lead” to begin.</p>
+  </section>
+  <section id="followupsTab" class="tabbody" hidden><h2>Follow-ups due</h2><p class="muted">Sorted by next follow-up date.</p><div id="followupList"></div></section>
+  <section id="visitsTab" class="tabbody" hidden><h2>Site visits</h2><p class="muted">Upcoming and confirmed visit schedules.</p><div id="visitList"></div></section>
+  <section id="usersTab" class="tabbody" hidden><h2>Caller accounts</h2><p class="muted">Prototype user list only. Real user provisioning must be handled by a secure backend.</p><div id="userList"></div></section>
+  <section id="backupTab" class="tabbody" hidden><h2>Backup and export</h2><p class="muted">Export a JSON backup or CSV lead list. Keep backups in a protected location.</p><div class="actions"><button id="exportJson" class="primary">Download full backup (JSON)</button><button id="exportCsv" class="secondary">Export visible leads (CSV)</button><label class="filelabel">Restore JSON backup<input type="file" id="importJson" accept=".json,application/json"></label></div><p id="backupMessage" class="muted"></p></section>
+</section>
+</main>
+<dialog id="leadDialog"><form id="leadForm" method="dialog">
+<div class="dialoghead"><h2 id="dialogTitle">Add lead</h2><button type="button" id="closeDialog" class="iconbtn" aria-label="Close">×</button></div>
+<input type="hidden" id="leadId">
+<div class="formgrid">
+<label>Customer name *<input id="customerName" required maxlength="120"></label>
+<label>Mobile number *<input id="mobile" required inputmode="tel" maxlength="20"></label>
+<label>WhatsApp number<input id="whatsapp" inputmode="tel" maxlength="20"></label>
+<label>Email<input id="email" type="email" maxlength="150"></label>
+<label>Preferred area<input id="area" maxlength="120"></label>
+<label>Budget<select id="budget"><option value="">Select</option><option>Below ₹1 Cr</option><option>₹1–2 Cr</option><option>₹2–3 Cr</option><option>Above ₹3 Cr</option><option>Other / To discuss</option></select></label>
+<label>BHK<select id="bhk"><option value="">Select</option><option>1 BHK</option><option>1.5 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4+ BHK</option><option>Other</option></select></label>
+<label>Property type<select id="propertyType"><option value="">Select</option><option>Residential</option><option>Commercial</option><option>Plot / Land</option><option>Rental</option></select></label>
+<label>Lead status<select id="status"><option>New</option><option>Contacted</option><option>Hot</option><option>Warm</option><option>Cold</option><option>Visit Scheduled</option><option>Booked</option><option>Lost</option></select></label>
+<label>Call outcome<select id="callOutcome"><option value="">Select</option><option>Answered</option><option>Not answered</option><option>Busy</option><option>Call back requested</option><option>Interested</option><option>Not interested</option></select></label>
+<label>Next follow-up date<input id="followDate" type="date"></label>
+<label>Next follow-up time<input id="followTime" type="time"></label>
+<label>Proposed visit date<input id="visitDate" type="date"></label>
+<label>Proposed visit time<input id="visitTime" type="time"></label>
+<label>Visit status<select id="visitStatus"><option value="">Not scheduled</option><option>Proposed</option><option>Confirmed</option><option>Completed</option><option>Cancelled</option></select></label>
+<label class="wide">Call notes / next action<textarea id="notes" rows="3" maxlength="2000"></textarea></label>
+</div><div class="dialogactions"><button type="button" id="deleteLeadBtn" class="danger" hidden>Delete lead</button><span class="spacer"></span><button type="button" id="cancelLeadBtn" class="secondary">Cancel</button><button type="submit" class="primary">Save lead</button></div>
+</form></dialog>
+<footer><p>Offline-first prototype · Data is stored in this browser on this device.</p><p class="warning">Prototype login is not a secure boundary. Do not store real customer information until server-side authentication and access policies are configured.</p></footer>
+<script src="./app.js"></script>
+</body></html>
