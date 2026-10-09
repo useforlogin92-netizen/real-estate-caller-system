@@ -42,8 +42,18 @@ Windows local server setup और commands के लिए [WINDOWS_LAN_SERVER.
 3. Chrome menu में “Install page as app” / “Install app” चुनें (नाम Chrome version के अनुसार बदल सकता है)।
 4. App shell कुछ परिस्थितियों में offline खुल सकता है; offline खुलना multi-device sync का अर्थ नहीं है।
 
-## Dedicated backend पूरा करने के लिए
-एक नया, अलग Supabase organization/project provision करें। Project बनाने से पहले organization और estimated cost की पुष्टि आवश्यक है। उसके बाद server-managed auth, profiles, lead ownership UUIDs, strict RLS, admin-only user management, password reset और tested sync configure किए जाएँगे।
+## चुना गया architecture: Office LAN only + manual backup/sync
+
+इस project के लिए अभी Supabase या कोई cloud database आवश्यक नहीं है, क्योंकि login केवल office LAN पर चाहिए। Office में एक Windows PC को मुख्य LAN server/database बनाना है और सभी caller computers उसी PC के LAN URL से जुड़ेंगे। GitHub Pages केवल public demo/code preview रहेगा—वहाँ बनाए गए users office server पर उपलब्ध नहीं होते।
+
+- **एक shared account source:** `server/data/database.json` मुख्य server पर रहेगा। Admin/callers के accounts केवल Admin द्वारा LAN server पर बनाए जाएँ।
+- **Office login:** सभी devices एक ही trusted Wi-Fi/LAN में हों और server PC चालू हो। Server PC बंद होने पर shared login/data उपलब्ध नहीं होंगे।
+- **Manual sync:** Admin की स्पष्ट अनुमति के बाद ही server Backup / Export से private JSON backup लें। Restore करने पर पहले pre-restore snapshot बनेगा और सभी sessions invalidate होंगे। Restore से पहले backup और target database का manual review जरूरी है।
+- **अलग offline PCs:** अलग-अलग computers पर अलग local databases बनाकर काम न करें—वे स्वतः merge नहीं होंगे। सभी callers को एक ही LAN server से जुड़ना चाहिए।
+- **GitHub Pages:** browser LocalStorage वाले demo accounts सिर्फ उसी browser तक सीमित हैं। वहाँ का account office LAN account नहीं है।
+- **Cloud:** अभी cloud account/backend provision न करें। भविष्य में office से बाहर login की जरूरत आए तभी अलग provider पर निर्णय लें। OM Krishna Group और Metro Properties के Supabase projects इस system से पूरी तरह अलग रहेंगे.
+
+पूरी architecture और चरणों के लिए [OFFICE_LAN_ARCHITECTURE_HI.md](./OFFICE_LAN_ARCHITECTURE_HI.md) देखें.
 
 विस्तृत requirements: [ACCOUNT_MANAGEMENT_REQUIREMENTS.md](./ACCOUNT_MANAGEMENT_REQUIREMENTS.md)  
 Security audit: [SECURITY_AUDIT.md](./SECURITY_AUDIT.md)
