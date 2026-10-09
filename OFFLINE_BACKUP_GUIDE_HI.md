@@ -41,3 +41,17 @@ Task Scheduler को पहले manually test करें। PC बंद �
 - Local backups में ग्राहक डेटा हो सकता है; external HDD को सुरक्षित रखें और जरूरत हो तो device encryption इस्तेमाल करें।
 - SHA-256 hash integrity check में मदद करता है; यह publisher signature का विकल्प नहीं है।
 - Script downloaded ZIP को automatic install/update नहीं करती। पहले database backup लें, server बंद करें, package inspect/test करें और फिर update लागू करें।
+
+## Recommended daily routine: mostly offline
+
+आपका recommended तरीका यह है:
+
+1. PC/server और callers का LAN/Wi-Fi चालू रखें; **internet disconnect रहने पर भी** local server पर काम करें।
+2. दिन के अंत में या तय समय पर internet थोड़ी देर के लिए connect करें।
+3. `windows\RUN-OFFLINE-BACKUP.bat` चलाएँ। यह पहले local database और project source की backup बनाएगा, फिर GitHub से latest code ZIP download करने का प्रयास करेगा।
+4. Console में local backup saved और GitHub package saved/failed messages देखकर पुष्टि करें।
+5. Backup पूरा होने के बाद internet disconnect कर दें। Local server को चलाने के लिए GitHub connection लगातार जरूरी नहीं है।
+
+**महत्वपूर्ण सीमा:** अभी यह flow GitHub से code ZIP download करता है, caller leads को GitHub पर sync/upload नहीं करता। अगर आप दो अलग-अलग PCs पर अलग-अलग offline data दर्ज करेंगे, तो वे अपने-आप merge नहीं होंगे। Shared callers के लिए एक ही server PC को LAN पर मुख्य database बनाकर रखें; बाकी devices उसी server से जुड़ें।
+
+यदि daily online window में backup को किसी दूसरे cloud destination पर भी रखना है, तो उसके लिए अलग private cloud destination/credentials और privacy rules configure करने होंगे। Public GitHub repo में customer database upload नहीं करना है।
